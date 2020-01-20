@@ -12,18 +12,17 @@
             color: chartreuse;
         }
 
-        .griglia {
-            display: flex;
-            flex-wrap: wrap;
-            width: 300;
+        .riga {
+            clear: left;
         }
 
         .casella {
             background-color: burlywood;
-            flex-grow: 1;
-            width: 30;
-            height: 30;
+            width: 30px;
+            height: 30px;
             border: black solid 1px;
+            display: inline-block;
+            float: left;
         }
 
         .casella:hover {
@@ -38,75 +37,69 @@
 
 <body>
     <script>
+        var cellUnlocker = 0;
+        var righe = 3;
+        var colonne = 6;
+
+        function disegnaGriglia() {
+            for (riga = 1; riga <= righe; riga++) {
+                idRiga = "Rig_" + riga;
+                $rigaDiv = $("<div>", { id: idRiga, "class": "riga" });
+                $(".griglia").append($rigaDiv);
+                for (colonna = 1; colonna <= colonne; colonna++) {
+                    thisDivId = "R" + riga + "C" + colonna;
+                    $cellaDiv = $("<div>", { id: thisDivId, "class": "casella" });
+                    $("#" + idRiga).append($cellaDiv);
+                }
+            }
+        }
+
         $(document).ready(function () {
+            disegnaGriglia();
             $(".casella").click(function () {
-                $(this).toggleClass("clicked");
-                aggiornaStatusCella(this);
+                cliccaCella(this);
             });
         });
-        function aggiornaStatusCella(elem) {
-            cliccata = $(elem).attr("ID");
-            //console.log("Clicked " + cliccata);
-            inviaIdCella(cliccata);
+
+        function cliccaCella(elem) {
+            //raccogli info cella cliccata
+            idCella = $(elem).attr("ID");
+            if ($(elem).hasClass("clicked")) {
+                if (cellUnlocker == 0) {
+                    $(elem).not(".cellLock").removeClass("clicked");
+                } else {
+                    $(elem).removeClass("clicked");
+                }
+            } else {
+                $(elem).addClass("clicked");
+                $.post("/riceviCella", { cellID: idCella, cliccata: true }, function (risposta) {
+                    retLocked = risposta.isLocked;
+                    //console.log(idCella + " diventaLockata: " + retLocked);
+                    if (retLocked == 1) {
+                        $(elem).addClass("cellLock");
+                    }
+                })
+            }
         }
-        function inviaIdCella(id) {
-            $.post("/riceviCella", { cellID: id }, function(data){
-                console.log(data);
-            });
+
+        function enableUnlock() {
+            if (cellUnlocker == 0) {
+                cellUnlocker = 1;
+            } else {
+                cellUnlocker = 0;
+            }
+            $("#cellUnlockerViewer").val(cellUnlocker);
         }
+
     </script>
     <h1>Main</h1>
+    <div class="cellUnlockerDiv">
+        <form id="cellUnlockerForm">
+            <input type="button" onclick="enableUnlock()" value="On Off Unlocker" />
+            <input type="text" id="cellUnlockerViewer" value="0" disabled />
+        </form>
+    </div>
     <div class="griglia">
-        <!--Row1-->
-        <div class="casella" id="R1C1"></div>
-        <div class="casella" id="R1C2"></div>
-        <div class="casella" id="R1C3"></div>
-        <div class="casella" id="R1C4"></div>
-        <div class="casella" id="R1C5"></div>
-        <div class="casella" id="R1C6"></div>
-        <div class="casella" id="R1C7"></div>
-        <div class="casella" id="R1C8"></div>
-        <div class="casella" id="R1C9"></div>
-        <!--Row2-->
-        <div class="casella" id="R2C1"></div>
-        <div class="casella" id="R2C2"></div>
-        <div class="casella" id="R2C3"></div>
-        <div class="casella" id="R2C4"></div>
-        <div class="casella" id="R2C5"></div>
-        <div class="casella" id="R2C6"></div>
-        <div class="casella" id="R2C7"></div>
-        <div class="casella" id="R2C8"></div>
-        <div class="casella" id="R2C9"></div>
-        <!--Row3-->
-        <div class="casella" id="R3C1"></div>
-        <div class="casella" id="R3C2"></div>
-        <div class="casella" id="R3C3"></div>
-        <div class="casella" id="R3C4"></div>
-        <div class="casella" id="R3C5"></div>
-        <div class="casella" id="R3C6"></div>
-        <div class="casella" id="R3C7"></div>
-        <div class="casella" id="R3C8"></div>
-        <div class="casella" id="R3C9"></div>
-        <!--Row4-->
-        <div class="casella" id="R4C1"></div>
-        <div class="casella" id="R4C2"></div>
-        <div class="casella" id="R4C3"></div>
-        <div class="casella" id="R4C4"></div>
-        <div class="casella" id="R4C5"></div>
-        <div class="casella" id="R4C6"></div>
-        <div class="casella" id="R4C7"></div>
-        <div class="casella" id="R4C8"></div>
-        <div class="casella" id="R4C9"></div>
-        <!--Row5-->
-        <div class="casella" id="R5C1"></div>
-        <div class="casella" id="R5C2"></div>
-        <div class="casella" id="R5C3"></div>
-        <div class="casella" id="R5C4"></div>
-        <div class="casella" id="R5C5"></div>
-        <div class="casella" id="R5C6"></div>
-        <div class="casella" id="R5C7"></div>
-        <div class="casella" id="R5C8"></div>
-        <div class="casella" id="R5C9"></div>
 
     </div>
 </body>
